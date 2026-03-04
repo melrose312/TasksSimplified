@@ -39,6 +39,11 @@ header {
   margin-right: 10px;
 }
 
+.title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
 .search__container {
   display: flex;
   flex-grow: 1;
@@ -282,6 +287,7 @@ header {
 .task__title {
   font-weight: 500;
   margin-bottom: 5px;
+  
 }
 
 .task__description {
