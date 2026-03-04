@@ -417,12 +417,12 @@ header {
   cursor: pointer;
 }
 
-.action__btn.btn--secondary {
+.action__btn.btn__secondary {
   background-color: rgba(89, 82, 209, 0.2);
   color: #5952d1;
 }
 
-.action__btn--primary {
+.action__btn.btn__primary {
   background-color: #e74c3c;
   color: white;
 }

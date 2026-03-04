@@ -178,18 +178,176 @@ function toggleTaskCompletion(taskId) {
   }
 }
 
-// const tasks = [
-//   { id: 1, title: "Learn JavaScript", completed: false},
-//   { id: 2, title: "Build a Project", completed: false},
-//   { id: 3, title: "Practice Coding", completed: true},
-// ];
+// Open modal to add a new task
+function openAddTaskModal() {
+  //Reset form
+  editingTaskId = null
+  modalTitle.textContent = "Add New Task"
+  taskTitleInput.value = ""
+  taskDescriptionInput.value = ""
 
-// Basic Click event
-// const addTaskBtn = document.getElementById("addTaskBtn")
-// addTaskBtn.addEventListener("click", function () {
-//   console.log("Add task clicked")
-//   openAddTaskModal()
-// })
+  //set current date
+  const now = new Date()
+  const day = String(now.getDate()).padStart(2, "0")
+  const month = String(now.getMonth() + 1).padStart(2, "0")
+  const year = now.getFullYear()
+  taskDateInput.value = `${month}/${day}/${year}`
+
+  //Set default priority (Low)
+  document.querySelectorAll('input[name="priority"]').forEach((radio) => {
+    radio.checked = radio.value === "low"
+  })
+
+  // Show modal
+  taskModal.style.display = "flex"
+}
+
+function openEditTaskModal(taskId) {
+  const task = tasks.find((t) => t.id === taskId)
+  if (!task) return
+
+  //Set form values from task
+  editingTaskId = taskId
+  modalTitle.textContent = "Edit Task"
+  taskTitleInput.value = task.title
+  taskDateInput.value = task.date
+  taskDescriptionInput.value = task.description
+
+  //Set priority radio button
+  document.querySelectorAll('input[name="priority"]').forEach((radio) => {
+    radio.checked = radio.value.toLowerCase() === task.priority.toLowerCase()
+  })
+
+  //Show modal
+  taskModal.style.display = "flex"
+}
+
+function closeModal() {
+  taskModal.style.display = "none"
+}
+
+//Save task (add new or update existing)
+function saveTask() {
+  if (!taskTitleInput.value.trim()) {
+    alert("Please enter a task title")
+    return
+  }
+
+  //Get selected priority
+  let selectedPriority = "Low"
+  document.querySelectorAll('input[name="priority"]').forEach((radio) => {
+    if (radio.checked) {
+      selectedPriority =
+        radio.value.charAt(0).toUpperCase() + radio.value.slice(1)
+    }
+  })
+
+  if (editingTaskId === null) {
+    //Add New Task
+    const newTask = {
+      id: Date.now(), //Use timestamp as unique ID
+      title: taskTitleInput.value.trim(),
+      description: taskDescriptionInput.value.trim(),
+      priority: selectedPriority,
+      date: taskDateInput.value,
+      completed: false,
+    }
+    // Add to the beginning of tasks array
+    tasks.unshift(newTask)
+
+    //Render tasks and select the new one
+    renderTasks()
+    selectTask(newTask.id)
+  } else {
+    // Update existing task
+    const taskIndex = tasks.findIndex((t) => t.id === editingTaskId)
+    if (taskIndex !== -1) {
+      tasks[taskIndex].title = taskTitleInput.value.trim()
+      tasks[taskIndex].description = taskDescriptionInput.value.trim()
+      tasks[taskIndex].priority = selectedPriority
+      tasks[taskIndex].date = taskDateInput.value
+
+      //Render tasks and select the updated one
+      renderTasks()
+      selectTask(editingTaskId)
+    }
+  }
+  closeModal()
+}
+
+// Delete a task
+function deleteTask(taskId) {
+  //Confirm deletion
+  if (!confirm("Are you sure you want to delete this task?")) return
+
+  //Find the task index
+  const taskIndex = tasks.findIndex((t) => t.id === taskId)
+  if (taskIndex === -1) return
+
+  //Remove the task
+  tasks.splice(taskIndex, 1)
+
+  renderTasks()
+
+  // Select another task or show empty state
+  if (tasks.length > 0) {
+    selectTask(tasks[0].id)
+  } else {
+    showEmptyState()
+  }
+}
+
+//Toggle task completion status
+function toggleTaskCompletion(taskId) {
+  const taskIndex = tasks.findIndex((t) => t.id === taskId)
+  if (taskIndex !== -1) {
+    tasks[taskIndex].completed = !tasks[taskIndex.completed]
+
+    //Update the UI
+    const statusCircle = document.querySelector(
+      `.task__card[data-id="${taskId}"] . status__circle`,
+    )
+    if (statusCircle) {
+      statusCircle.classList.toggle("completed")
+    }
+    selectedTask(taskId)
+  }
+}
+
+//Search tasks by title
+function searchTasks() {
+  const searchTerm = searchInput.value.toLowerCase().trim()
+
+  if (searchTerm === "") {
+    renderTasks()
+    if (tasks.length > 0) {
+      selectTask(tasks[0].id)
+    }
+    return;
+  }
+
+  // Filter tasks by title
+  const filteredTasks = tasks.filter((task) =>
+    task.title.toLowerCase().includes(searchTerm),
+  )
+
+  if (filteredTasks.length === 0) {
+    //Show no results message
+    tasksWrapper.innerHTML = `
+    <div class="empty__state">
+    <p>No tasks match your search.</p>
+    </div>`
+    taskDetailsPanel.innerHTML = ""
+  } else {
+    //show filtered results
+    tasksWrapper.innerHTML = ""
+    filteredTasks.forEach((task) => {
+      const taskCard = createTaskCard(task)
+      tasksWrapper.appendChild(taskCard)
+    })
+    selectTask(filteredTasks[0].id)
+  }
+}
 
 // Arrow function with parameters and return value
 const truncateText = (text, maxLength) => {
